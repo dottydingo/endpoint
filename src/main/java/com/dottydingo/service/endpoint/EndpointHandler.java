@@ -48,17 +48,20 @@ public class EndpointHandler<C extends EndpointContext<REQ,RES,STAT>,REQ extends
         try
         {
             context = contextBuilder.buildContext(request,response);
+        }
+        catch (Throwable t)
+        {
+            errorHandler.handleError(context,t);
+            return;
+        }
+
+        try
+        {
             contextStatusRegistry.registerContext(context.getRequestId(),context.getContextStatus());
             initialPhaseSelector.getNextPhase(context).execute(context);
         }
         catch (Exception e)
         {
-            if(context == null)
-            {
-                context = contextBuilder.buildErrorContext(request,response);
-                contextStatusRegistry.registerContext(context.getRequestId(),context.getContextStatus());
-            }
-
             errorHandler.handleError(context,e);
         }
     }

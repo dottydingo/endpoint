@@ -26,13 +26,13 @@ public class DefaultContextStatusManager<STAT extends ContextStatus>
     }
 
     @Override
-    public void unAssociateContextStatus()
+    public void disassociateContextStatus()
     {
-        unAssociateContextStatus(Thread.currentThread());
+        disassociateContextStatus(Thread.currentThread());
     }
 
     @Override
-    public void unAssociateContextStatus(Thread thread)
+    public void disassociateContextStatus(Thread thread)
     {
         threadStatusMap.remove(thread);
     }

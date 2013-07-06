@@ -42,7 +42,7 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
 
         Trace trace = phaseContext.getTrace();
         if(trace!= null)
-            traceManager.startTrace(trace);
+            traceManager.associateTrace(trace);
 
         ContextStatus contextStatus = phaseContext.getContextStatus();
         if(contextStatus != null)
@@ -60,9 +60,9 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         {
             MDC.clear();
             if(trace != null)
-                traceManager.endTrace();
+                traceManager.disassociateTrace();
             if(contextStatus != null)
-                contextStatusManager.unAssociateContextStatus();
+                contextStatusManager.disassociateContextStatus();
         }
 
 

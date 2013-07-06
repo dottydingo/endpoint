@@ -1,5 +1,6 @@
-package com.dottydingo.service.endpoint;
+package com.dottydingo.service.endpoint.spring;
 
+import com.dottydingo.service.endpoint.EndpointHandler;
 import org.springframework.web.HttpRequestHandler;
 
 import javax.servlet.ServletException;

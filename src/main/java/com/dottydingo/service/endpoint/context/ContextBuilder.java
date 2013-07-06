@@ -1,5 +1,6 @@
 package com.dottydingo.service.endpoint.context;
 
+import com.dottydingo.service.endpoint.CompletionHandler;
 import com.dottydingo.service.endpoint.configuration.EndpointConfiguration;
 import com.dottydingo.service.endpoint.io.BufferingInputStreamWrapper;
 import com.dottydingo.service.endpoint.io.SizeTrackingOutputStream;

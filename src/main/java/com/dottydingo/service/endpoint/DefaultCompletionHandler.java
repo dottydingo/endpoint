@@ -1,11 +1,9 @@
-package com.dottydingo.service.endpoint.pipeline;
+package com.dottydingo.service.endpoint;
 
+import com.dottydingo.service.endpoint.context.EndpointContext;
 import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.endpoint.status.ContextStatusManager;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
-import com.dottydingo.service.pipeline.Phase;
-import com.dottydingo.service.endpoint.configuration.EndpointConfiguration;
-import com.dottydingo.service.endpoint.context.EndpointContext;
 import com.dottydingo.service.tracelog.Trace;
 import com.dottydingo.service.tracelog.TraceManager;
 import org.slf4j.Logger;
@@ -14,14 +12,14 @@ import org.slf4j.MDC;
 
 /**
  */
-public abstract class FinalizeResponsePhase<C extends EndpointContext> implements Phase<C>
+public class DefaultCompletionHandler<C extends EndpointContext> implements CompletionHandler<C>
 {
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     private TraceManager traceManager;
     private ContextStatusManager contextStatusManager;
     private ContextStatusRegistry contextStatusRegistry;
-    private String name;
+    private RequestLogHandler<C> requestLogHandler;
 
     public void setTraceManager(TraceManager traceManager)
     {
@@ -38,39 +36,37 @@ public abstract class FinalizeResponsePhase<C extends EndpointContext> implement
         this.contextStatusRegistry = contextStatusRegistry;
     }
 
-    public void setName(String name)
+    public void setRequestLogHandler(RequestLogHandler<C> requestLogHandler)
     {
-        this.name = name;
+        this.requestLogHandler = requestLogHandler;
     }
 
     @Override
-    public void execute(C phaseContext) throws Exception
+    public void completeRequest(C endpointContext)
     {
+        MDC.put("CID", endpointContext.getCorrelationId());
 
-        MDC.put("CID",phaseContext.getCorrelationId());
-
-        Trace trace = phaseContext.getTrace();
+        Trace trace = endpointContext.getTrace();
         if(trace!= null)
-            traceManager.startTrace(trace);
+            traceManager.associateTrace(trace);
 
-        ContextStatus contextStatus = phaseContext.getContextStatus();
+        ContextStatus contextStatus = endpointContext.getContextStatus();
         if(contextStatus != null)
             contextStatusManager.associateContextStatus(contextStatus);
 
+        endpointContext.requestComplete();
         try
         {
-            logger.debug("Starting phase {}",name);
-
-            finalizeResponse(phaseContext);
+            finalizeResponse(endpointContext);
         }
         catch (Throwable throwable)
         {
-            logger.error(String.format("Error finalizing response in phase %s",name),throwable);
+            logger.error("Error completing request.", throwable);
         }
 
         if (trace != null)
         {
-            traceManager.endTrace();
+            traceManager.disassociateTrace();
 
             try
             {
@@ -82,14 +78,19 @@ public abstract class FinalizeResponsePhase<C extends EndpointContext> implement
             }
         }
 
-        if(contextStatus != null)
-            contextStatusManager.unAssociateContextStatus();
+        if (contextStatus != null)
+        {
+            contextStatusManager.disassociateContextStatus();
+        }
 
-        contextStatusRegistry.unRegisterContext(phaseContext.getRequestId());
+        contextStatusRegistry.unRegisterContext(endpointContext.getRequestId());
 
-        MDC.clear();
-        phaseContext.requestComplete();
+        if(requestLogHandler != null)
+            requestLogHandler.logRequest(endpointContext);
+
     }
 
-    protected void finalizeResponse(C phaseContext) throws Exception {}
+    protected void finalizeResponse(C phaseContext) throws Exception
+    {
+    }
 }
