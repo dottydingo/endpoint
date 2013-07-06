@@ -1,16 +1,31 @@
 package com.dottydingo.service.endpoint.context;
 
+import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.tracelog.Trace;
 
 /**
  */
-public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointResponse>
+public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointResponse,STAT extends ContextStatus>
 {
+    protected Long requestId;
     protected REQ endpointRequest;
     protected RES endpointResponse;
     protected String correlationId;
     protected Trace trace;
+    protected STAT contextStatus;
     protected Throwable error;
+    protected long startTimestamp = System.currentTimeMillis();
+    protected long endTimestamp = -1;
+
+    public Long getRequestId()
+    {
+        return requestId;
+    }
+
+    public void setRequestId(Long requestId)
+    {
+        this.requestId = requestId;
+    }
 
     public REQ getEndpointRequest()
     {
@@ -52,6 +67,16 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
         this.trace = trace;
     }
 
+    public STAT getContextStatus()
+    {
+        return contextStatus;
+    }
+
+    public void setContextStatus(STAT contextStatus)
+    {
+        this.contextStatus = contextStatus;
+    }
+
     public Throwable getError()
     {
         return error;
@@ -61,4 +86,25 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     {
         this.error = error;
     }
+
+    public void requestComplete()
+    {
+        endTimestamp = System.currentTimeMillis();
+    }
+
+    public long getStartTimestamp()
+    {
+        return startTimestamp;
+    }
+
+    public long getElapsedTime()
+    {
+        long end = endTimestamp;
+        if(end == -1)
+            end = System.currentTimeMillis();
+
+        return end - startTimestamp;
+    }
+
+
 }

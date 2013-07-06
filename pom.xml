@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>com.dottydingo.service.endpoint</groupId>
-    <artifactId>endpoint</artifactId>
+    <artifactId>service-endpoint</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <licenses>
@@ -37,13 +37,13 @@
 
         <dependency>
             <groupId>com.dottydingo.service.pipeline</groupId>
-            <artifactId>pipeline</artifactId>
+            <artifactId>service-pipeline</artifactId>
             <version>${pipeline.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.dottydingo.tracelog</groupId>
-            <artifactId>tracelog</artifactId>
+            <artifactId>service-tracelog</artifactId>
             <version>${tracelog.version}</version>
         </dependency>
 
@@ -51,6 +51,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId> slf4j-api</artifactId>
             <version>1.7.5</version>
+            <optional>true</optional>
         </dependency>
 
         <dependency>

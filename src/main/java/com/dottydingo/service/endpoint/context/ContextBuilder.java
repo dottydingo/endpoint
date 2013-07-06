@@ -3,6 +3,8 @@ package com.dottydingo.service.endpoint.context;
 import com.dottydingo.service.endpoint.configuration.EndpointConfiguration;
 import com.dottydingo.service.endpoint.io.BufferingInputStreamWrapper;
 import com.dottydingo.service.endpoint.io.SizeTrackingOutputStream;
+import com.dottydingo.service.endpoint.status.ContextStatus;
+import com.dottydingo.service.endpoint.status.ContextStatusBuilder;
 import com.dottydingo.service.tracelog.Trace;
 import com.dottydingo.service.tracelog.TraceFactory;
 import com.dottydingo.service.tracelog.TraceType;
@@ -15,13 +17,17 @@ import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  */
-public class ContextBuilder<C extends EndpointContext<REQ,RES>,REQ extends EndpointRequest,RES extends EndpointResponse>
+public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends EndpointRequest,RES extends EndpointResponse,
+        STAT extends ContextStatus>
 {
+    private AtomicLong counter = new AtomicLong(0);
     protected EndpointConfiguration endpointConfiguration;
     protected TraceFactory traceFactory;
+    protected ContextStatusBuilder<STAT,C> contextStatusBuilder;
 
     public void setEndpointConfiguration(EndpointConfiguration endpointConfiguration)
     {
@@ -33,10 +39,17 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES>,REQ extends Endpo
         this.traceFactory = traceFactory;
     }
 
+    public void setContextStatusBuilder(ContextStatusBuilder<STAT, C> contextStatusBuilder)
+    {
+        this.contextStatusBuilder = contextStatusBuilder;
+    }
+
     public C buildContext(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
             throws IOException
     {
         C context = createContextInstance(httpServletRequest, httpServletResponse);
+        context.setRequestId(counter.incrementAndGet());
+
         REQ request = createRequest(httpServletRequest);
         request.setInputStream(wrapInputStream(httpServletRequest.getInputStream()));
 
@@ -52,6 +65,8 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES>,REQ extends Endpo
         // create a trace if requested
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
+        context.setContextStatus(contextStatusBuilder.buildContextStatus(context));
+
         return context;
     }
 
@@ -59,6 +74,8 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES>,REQ extends Endpo
 
     {
         C context = createContextInstance(httpServletRequest, httpServletResponse);
+        context.setRequestId(counter.incrementAndGet());
+
         REQ request = createRequest(httpServletRequest);
         RES response = createResponse(httpServletResponse);
 
@@ -71,12 +88,14 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES>,REQ extends Endpo
         // create a trace if requested
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
+        context.setContextStatus(contextStatusBuilder.buildContextStatus(context));
+
         return context;
     }
 
     protected C createContextInstance(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
     {
-        return (C) new EndpointContext<REQ,RES>();
+        return (C) new EndpointContext<REQ,RES,ContextStatus>();
     }
 
     protected RES createResponseInstance()
