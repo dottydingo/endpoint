@@ -10,6 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  */
 public class DefaultCompletionHandler<C extends EndpointContext> implements CompletionHandler<C>
@@ -20,6 +23,7 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
     private ContextStatusManager contextStatusManager;
     private ContextStatusRegistry contextStatusRegistry;
     private RequestLogHandler<C> requestLogHandler;
+    private List<CompletionCallback<C>> completionCallbacks = new ArrayList<CompletionCallback<C>>();
 
     public void setTraceManager(TraceManager traceManager)
     {
@@ -41,6 +45,11 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         this.requestLogHandler = requestLogHandler;
     }
 
+    public void setCompletionCallbacks(List<CompletionCallback<C>> completionCallbacks)
+    {
+        this.completionCallbacks = completionCallbacks;
+    }
+
     @Override
     public void completeRequest(C endpointContext)
     {
@@ -57,7 +66,10 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         endpointContext.requestComplete();
         try
         {
-            finalizeResponse(endpointContext);
+            for (CompletionCallback<C> callback : completionCallbacks)
+            {
+                callback.onComplete(endpointContext);
+            }
         }
         catch (Throwable throwable)
         {
@@ -88,9 +100,6 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         if(requestLogHandler != null)
             requestLogHandler.logRequest(endpointContext);
 
-    }
 
-    protected void finalizeResponse(C phaseContext) throws Exception
-    {
     }
 }

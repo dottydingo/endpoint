@@ -36,6 +36,12 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
     }
 
     @Override
+    public String getName()
+    {
+        return name;
+    }
+
+    @Override
     public void execute(C phaseContext) throws Exception
     {
         MDC.put("CID",phaseContext.getCorrelationId());
@@ -51,6 +57,7 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         try
         {
             logger.debug("Starting phase {}",name);
+            phaseContext.getContextStatus().startTimer(String.format("phase:%s",name));
 
             executePhase(phaseContext);
 
@@ -58,6 +65,7 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         }
         finally
         {
+            phaseContext.getContextStatus().stopTimer(String.format("phase:%s",name));
             MDC.clear();
             if(trace != null)
                 traceManager.disassociateTrace();
