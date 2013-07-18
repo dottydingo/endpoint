@@ -16,6 +16,7 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     protected Throwable error;
     protected long startTimestamp = System.currentTimeMillis();
     protected long endTimestamp = -1;
+    protected volatile boolean timedOut;
 
     public Long getRequestId()
     {
@@ -106,5 +107,13 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
         return end - startTimestamp;
     }
 
+    public void setTimedOut()
+    {
+        timedOut = true;
+    }
 
+    public boolean isTimedOut()
+    {
+        return timedOut;
+    }
 }

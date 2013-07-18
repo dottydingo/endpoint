@@ -44,6 +44,9 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
     @Override
     public void execute(C phaseContext) throws Exception
     {
+        if(phaseContext.isTimedOut())
+            throw new EndpointTimeoutException(String.format("Endpoint request timed out."));
+
         MDC.put("CID",phaseContext.getCorrelationId());
 
         Trace trace = phaseContext.getTrace();
