@@ -5,6 +5,8 @@ import com.dottydingo.service.endpoint.context.EndpointContext;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
 import com.dottydingo.service.pipeline.ErrorHandler;
 import com.dottydingo.service.pipeline.PhaseSelector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,6 +15,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class BaseEndpointHandler<C extends EndpointContext<?,?,?>> implements EndpointHandler
 {
+    private Logger logger = LoggerFactory.getLogger(BaseEndpointHandler.class);
+
     private ContextBuilder<C,?,?,?> contextBuilder;
     private PhaseSelector<C> initialPhaseSelector;
     private ErrorHandler<C> errorHandler;
@@ -62,6 +66,8 @@ public class BaseEndpointHandler<C extends EndpointContext<?,?,?>> implements En
         {
             errorHandler.handleError(context,e);
         }
+
+        logger.debug("Pipeline complete.");
     }
 
     protected void beforePipeline(C context){}
