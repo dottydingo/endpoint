@@ -19,6 +19,9 @@ public class EndpointRequest
 
     private String contentType;
     private String requestMethod;
+    private String authType;
+    private String remoteAddress;
+    private String serverName;
 
     private InputStream inputStream;
 
@@ -82,6 +85,36 @@ public class EndpointRequest
     public void setRequestMethod(String requestMethod)
     {
         this.requestMethod = requestMethod;
+    }
+
+    public String getAuthType()
+    {
+        return authType;
+    }
+
+    public void setAuthType(String authType)
+    {
+        this.authType = authType;
+    }
+
+    public String getRemoteAddress()
+    {
+        return remoteAddress;
+    }
+
+    public void setRemoteAddress(String remoteAddress)
+    {
+        this.remoteAddress = remoteAddress;
+    }
+
+    public String getServerName()
+    {
+        return serverName;
+    }
+
+    public void setServerName(String serverName)
+    {
+        this.serverName = serverName;
     }
 
     public HttpServletRequest getHttpServletRequest()

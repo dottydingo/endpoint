@@ -6,7 +6,17 @@ import java.util.List;
  */
 public interface ContextStatus
 {
+    Long getRequestId();
     String getCorrelationId();
+    String getRemoteAddress();
+    String getRequestUrl();
+    String getBaseUrl();
+    String getRequestUri();
+    String getQueryString();
+    String getContentType();
+    String getRequestMethod();
+    String getAuthType();
+    String getServerName();
 
     long getStartTimestamp();
     long getElapsedTime();

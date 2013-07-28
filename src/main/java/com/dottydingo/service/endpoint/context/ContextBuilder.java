@@ -29,6 +29,7 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
     protected EndpointConfiguration endpointConfiguration;
     protected TraceFactory traceFactory;
     protected ContextStatusBuilder<STAT,C> contextStatusBuilder;
+    protected CompletionHandler<C> completionHandler;
 
     public void setEndpointConfiguration(EndpointConfiguration endpointConfiguration)
     {
@@ -43,6 +44,11 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
     public void setContextStatusBuilder(ContextStatusBuilder<STAT, C> contextStatusBuilder)
     {
         this.contextStatusBuilder = contextStatusBuilder;
+    }
+
+    public void setCompletionHandler(CompletionHandler<C> completionHandler)
+    {
+        this.completionHandler = completionHandler;
     }
 
     public C buildContext(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
@@ -67,6 +73,8 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
         context.setContextStatus(contextStatusBuilder.buildContextStatus(context));
+
+        context.setCompletionHandler(completionHandler);
 
         return context;
     }
@@ -144,6 +152,10 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
         request.setQueryString(httpServletRequest.getQueryString());
         request.setRequestUri(getRequestUri(httpServletRequest));
         request.setBaseUrl(getBaseUrl(httpServletRequest));
+
+        request.setAuthType(httpServletRequest.getAuthType());
+        request.setRemoteAddress(httpServletRequest.getRemoteAddr());
+        request.setServerName(httpServletRequest.getServerName());
 
 
         return request;

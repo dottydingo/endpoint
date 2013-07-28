@@ -8,7 +8,7 @@ import java.util.*;
  */
 public class DefaultContextStatus<CON extends EndpointContext> implements ContextStatus
 {
-    private final CON endpointContext;
+    protected final CON endpointContext;
     private final Map<String,ContextTimer> timerMap = new LinkedHashMap<String, ContextTimer>();
     private final List<ContextLogEntry> logEntries = new LinkedList<ContextLogEntry>();
 
@@ -21,6 +21,66 @@ public class DefaultContextStatus<CON extends EndpointContext> implements Contex
     public String getCorrelationId()
     {
         return endpointContext.getCorrelationId();
+    }
+
+    @Override
+    public Long getRequestId()
+    {
+        return endpointContext.getRequestId();
+    }
+
+    @Override
+    public String getRemoteAddress()
+    {
+        return endpointContext.getEndpointRequest().getRemoteAddress();
+    }
+
+    @Override
+    public String getRequestUrl()
+    {
+        return endpointContext.getEndpointRequest().getRequestUrl();
+    }
+
+    @Override
+    public String getBaseUrl()
+    {
+        return endpointContext.getEndpointRequest().getBaseUrl();
+    }
+
+    @Override
+    public String getRequestUri()
+    {
+        return endpointContext.getEndpointRequest().getRequestUri();
+    }
+
+    @Override
+    public String getQueryString()
+    {
+        return endpointContext.getEndpointRequest().getQueryString();
+    }
+
+    @Override
+    public String getContentType()
+    {
+        return endpointContext.getEndpointRequest().getContentType();
+    }
+
+    @Override
+    public String getRequestMethod()
+    {
+        return endpointContext.getEndpointRequest().getRequestMethod();
+    }
+
+    @Override
+    public String getAuthType()
+    {
+        return endpointContext.getEndpointRequest().getAuthType();
+    }
+
+    @Override
+    public String getServerName()
+    {
+        return endpointContext.getEndpointRequest().getServerName();
     }
 
     @Override

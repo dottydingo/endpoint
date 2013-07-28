@@ -1,5 +1,6 @@
 package com.dottydingo.service.endpoint.context;
 
+import com.dottydingo.service.endpoint.CompletionHandler;
 import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.tracelog.Trace;
 
@@ -17,6 +18,13 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     protected long startTimestamp = System.currentTimeMillis();
     protected long endTimestamp = -1;
     protected volatile boolean timedOut;
+    protected volatile boolean complete;
+    protected CompletionHandler completionHandler;
+
+    public void setCompletionHandler(CompletionHandler completionHandler)
+    {
+        this.completionHandler = completionHandler;
+    }
 
     public Long getRequestId()
     {
@@ -91,6 +99,14 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     public void requestComplete()
     {
         endTimestamp = System.currentTimeMillis();
+        complete = true;
+        if(completionHandler != null)
+            completionHandler.completeRequest(this);
+    }
+
+    public boolean isComplete()
+    {
+        return complete;
     }
 
     public long getStartTimestamp()

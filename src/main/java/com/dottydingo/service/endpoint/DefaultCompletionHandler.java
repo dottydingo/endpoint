@@ -63,7 +63,6 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         if(contextStatus != null)
             contextStatusManager.associateContextStatus(contextStatus);
 
-        endpointContext.requestComplete();
         try
         {
             for (CompletionCallback<C> callback : completionCallbacks)
