@@ -4,8 +4,6 @@ import com.dottydingo.service.endpoint.CompletionHandler;
 import com.dottydingo.service.endpoint.configuration.EndpointConfiguration;
 import com.dottydingo.service.endpoint.io.BufferingInputStreamWrapper;
 import com.dottydingo.service.endpoint.io.SizeTrackingOutputStream;
-import com.dottydingo.service.endpoint.status.ContextStatus;
-import com.dottydingo.service.endpoint.status.ContextStatusBuilder;
 import com.dottydingo.service.tracelog.Trace;
 import com.dottydingo.service.tracelog.TraceFactory;
 import com.dottydingo.service.tracelog.TraceType;
@@ -22,14 +20,14 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  */
-public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends EndpointRequest,RES extends EndpointResponse,
-        STAT extends ContextStatus>
+public class ContextBuilder<C extends EndpointContext,REQ extends EndpointRequest,RES extends EndpointResponse,
+        U extends UserContext>
 {
     private AtomicLong counter = new AtomicLong(0);
     protected EndpointConfiguration endpointConfiguration;
     protected TraceFactory traceFactory;
-    protected ContextStatusBuilder<STAT,C> contextStatusBuilder;
     protected CompletionHandler<C> completionHandler;
+    protected UserContextBuilder<U,C> userContextBuilder = (UserContextBuilder<U, C>) new EmptyUserContextBuilder();
 
     public void setEndpointConfiguration(EndpointConfiguration endpointConfiguration)
     {
@@ -41,14 +39,14 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
         this.traceFactory = traceFactory;
     }
 
-    public void setContextStatusBuilder(ContextStatusBuilder<STAT, C> contextStatusBuilder)
-    {
-        this.contextStatusBuilder = contextStatusBuilder;
-    }
-
     public void setCompletionHandler(CompletionHandler<C> completionHandler)
     {
         this.completionHandler = completionHandler;
+    }
+
+    public void setUserContextBuilder(UserContextBuilder<U, C> userContextBuilder)
+    {
+        this.userContextBuilder = userContextBuilder;
     }
 
     public C buildContext(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
@@ -69,10 +67,13 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
         // set or assign a correlation ID
         context.setCorrelationId(getCorrelationId(request));
 
+        // set the correlation ID on the response
+        response.setHeader(endpointConfiguration.getCorrelationIdHeaderName(),context.getCorrelationId());
+
         // create a trace if requested
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
-        context.setContextStatus(contextStatusBuilder.buildContextStatus(context));
+        context.setUserContext(userContextBuilder.buildUserContext(context));
 
         context.setCompletionHandler(completionHandler);
 
@@ -97,14 +98,14 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
         // create a trace if requested
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
-        context.setContextStatus(contextStatusBuilder.buildContextStatus(context));
+        context.setUserContext(userContextBuilder.buildUserContext(context));
 
         return context;
     }
 
     protected C createContextInstance(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
     {
-        return (C) new EndpointContext<REQ,RES,ContextStatus>();
+        return (C) new EndpointContext();
     }
 
     protected RES createResponseInstance()
@@ -150,7 +151,7 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
 
         request.setRequestUrl(httpServletRequest.getRequestURL().toString());
         request.setQueryString(httpServletRequest.getQueryString());
-        request.setRequestUri(getRequestUri(httpServletRequest));
+        request.setRequestUri(httpServletRequest.getRequestURI());
         request.setBaseUrl(getBaseUrl(httpServletRequest));
 
         request.setAuthType(httpServletRequest.getAuthType());
@@ -232,27 +233,16 @@ public class ContextBuilder<C extends EndpointContext<REQ,RES,STAT>,REQ extends 
         return null;
     }
 
-    protected String getRequestUri(HttpServletRequest request)
-    {
-        String context = request.getContextPath();
-        String servlet = request.getServletPath();
-        String requestUri = request.getRequestURI();
-
-        if((context.length() + servlet.length()) == requestUri.length())
-            return "";
-
-        return requestUri.substring(context.length() + servlet.length());
-    }
 
     protected String getBaseUrl(HttpServletRequest request)
     {
-        StringBuffer context = request.getRequestURL();
+        StringBuffer url = request.getRequestURL();
         String requestUri = request.getRequestURI();
 
-        int pos = context.indexOf(requestUri);
+        int pos = url.indexOf(requestUri);
         if(pos < 0)
-            return context.toString();
+            return url.toString();
 
-        return context.substring(0,pos + request.getContextPath().length() + request.getServletPath().length());
+        return url.substring(0,pos + request.getContextPath().length());
     }
 }

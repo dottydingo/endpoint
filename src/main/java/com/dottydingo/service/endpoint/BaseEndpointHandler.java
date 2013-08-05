@@ -2,6 +2,8 @@ package com.dottydingo.service.endpoint;
 
 import com.dottydingo.service.endpoint.context.ContextBuilder;
 import com.dottydingo.service.endpoint.context.EndpointContext;
+import com.dottydingo.service.endpoint.status.ContextStatus;
+import com.dottydingo.service.endpoint.status.ContextStatusBuilder;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
 import com.dottydingo.service.pipeline.ErrorHandler;
 import com.dottydingo.service.pipeline.PhaseSelector;
@@ -13,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  */
-public class BaseEndpointHandler<C extends EndpointContext<?,?,?>> implements EndpointHandler
+public class BaseEndpointHandler<C extends EndpointContext> implements EndpointHandler
 {
     private Logger logger = LoggerFactory.getLogger(BaseEndpointHandler.class);
 
@@ -21,6 +23,7 @@ public class BaseEndpointHandler<C extends EndpointContext<?,?,?>> implements En
     private PhaseSelector<C> initialPhaseSelector;
     private ErrorHandler<C> errorHandler;
     private ContextStatusRegistry contextStatusRegistry;
+    private ContextStatusBuilder<ContextStatus,C> contextStatusBuilder;
 
     public void setContextBuilder(ContextBuilder<C,?,?,?> contextBuilder)
     {
@@ -42,6 +45,11 @@ public class BaseEndpointHandler<C extends EndpointContext<?,?,?>> implements En
         this.contextStatusRegistry = contextStatusRegistry;
     }
 
+    public void setContextStatusBuilder(ContextStatusBuilder<ContextStatus, C> contextStatusBuilder)
+    {
+        this.contextStatusBuilder = contextStatusBuilder;
+    }
+
     public void handleRequest(HttpServletRequest request,HttpServletResponse response)
     {
         C context = null;
@@ -57,7 +65,9 @@ public class BaseEndpointHandler<C extends EndpointContext<?,?,?>> implements En
 
         try
         {
-            contextStatusRegistry.registerContext(context.getRequestId(),context.getContextStatus());
+            ContextStatus status = contextStatusBuilder.buildContextStatus(context);
+            context.setContextStatus(status);
+            contextStatusRegistry.registerContext(context.getRequestId(),status);
             beforePipeline(context);
             initialPhaseSelector.getNextPhase(context).execute(context);
             afterPipeline(context);

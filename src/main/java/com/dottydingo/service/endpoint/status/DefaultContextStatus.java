@@ -1,6 +1,7 @@
 package com.dottydingo.service.endpoint.status;
 
 import com.dottydingo.service.endpoint.context.EndpointContext;
+import com.dottydingo.service.endpoint.context.UserContext;
 
 import java.util.*;
 
@@ -81,6 +82,12 @@ public class DefaultContextStatus<CON extends EndpointContext> implements Contex
     public String getServerName()
     {
         return endpointContext.getEndpointRequest().getServerName();
+    }
+
+    @Override
+    public UserContext getUserContext()
+    {
+        return endpointContext.getUserContext();
     }
 
     @Override

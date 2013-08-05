@@ -6,20 +6,22 @@ import com.dottydingo.service.tracelog.Trace;
 
 /**
  */
-public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointResponse,STAT extends ContextStatus>
+public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointResponse,S extends ContextStatus,
+        U extends UserContext>
 {
     protected Long requestId;
     protected REQ endpointRequest;
     protected RES endpointResponse;
     protected String correlationId;
     protected Trace trace;
-    protected STAT contextStatus;
     protected Throwable error;
     protected long startTimestamp = System.currentTimeMillis();
     protected long endTimestamp = -1;
     protected volatile boolean timedOut;
     protected volatile boolean complete;
     protected CompletionHandler completionHandler;
+    protected U userContext;
+    protected S contextStatus;
 
     public void setCompletionHandler(CompletionHandler completionHandler)
     {
@@ -76,16 +78,6 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
         this.trace = trace;
     }
 
-    public STAT getContextStatus()
-    {
-        return contextStatus;
-    }
-
-    public void setContextStatus(STAT contextStatus)
-    {
-        this.contextStatus = contextStatus;
-    }
-
     public Throwable getError()
     {
         return error;
@@ -94,6 +86,26 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     public void setError(Throwable error)
     {
         this.error = error;
+    }
+
+    public U getUserContext()
+    {
+        return userContext;
+    }
+
+    public void setUserContext(U userContext)
+    {
+        this.userContext = userContext;
+    }
+
+    public S getContextStatus()
+    {
+        return contextStatus;
+    }
+
+    public void setContextStatus(S contextStatus)
+    {
+        this.contextStatus = contextStatus;
     }
 
     public void requestComplete()

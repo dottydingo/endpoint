@@ -1,5 +1,7 @@
 package com.dottydingo.service.endpoint.status;
 
+import com.dottydingo.service.endpoint.context.UserContext;
+
 import java.util.List;
 
 /**
@@ -17,6 +19,7 @@ public interface ContextStatus
     String getRequestMethod();
     String getAuthType();
     String getServerName();
+    UserContext getUserContext();
 
     long getStartTimestamp();
     long getElapsedTime();

@@ -10,15 +10,7 @@ public class ContextBuilderTest
 {
     private ContextBuilder contextBuilder = new ContextBuilder();
 
-    @Test
-    public void testGetRequestUri()
-    {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setContextPath("/foo");
-        request.setRequestURI("/foo/bar/baz");
 
-        Assert.assertEquals("/bar/baz",contextBuilder.getRequestUri(request));
-    }
 
     @Test
     public void testGetBaseUrl()
@@ -30,7 +22,7 @@ public class ContextBuilderTest
         request.setContextPath("/foo");
         request.setRequestURI("/foo/bar/baz");
 
-        Assert.assertEquals("http://www.foobar.com:80/foo/bar",contextBuilder.getBaseUrl(request));
+        Assert.assertEquals("http://www.foobar.com:80/foo",contextBuilder.getBaseUrl(request));
     }
 
     @Test
@@ -55,11 +47,11 @@ public class ContextBuilderTest
 
         Assert.assertSame(request,endpointRequest.getHttpServletRequest());
 
-        Assert.assertEquals("http://www.foobar.com:80/foo/bar",endpointRequest.getBaseUrl());
+        Assert.assertEquals("http://www.foobar.com:80/foo",endpointRequest.getBaseUrl());
         Assert.assertEquals("application/json",endpointRequest.getContentType());
         Assert.assertEquals("foo=bar",endpointRequest.getQueryString());
         Assert.assertEquals("GET",endpointRequest.getRequestMethod());
-        Assert.assertEquals("/baz",endpointRequest.getRequestUri());
+        Assert.assertEquals("/foo/bar/baz",endpointRequest.getRequestUri());
 
 
     }

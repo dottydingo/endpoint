@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  */
-public class AsynchronousEndpointHandler<C extends EndpointContext<?,?,?>> extends BaseEndpointHandler<C>
+public class AsynchronousEndpointHandler<C extends EndpointContext> extends BaseEndpointHandler<C>
 {
     private long timeout = 0;
 
@@ -30,7 +30,7 @@ public class AsynchronousEndpointHandler<C extends EndpointContext<?,?,?>> exten
         asyncContext.addListener(new EndpointAsyncListener<C>(context));
     }
 
-    private class EndpointAsyncListener<C extends EndpointContext<?,?,?>> implements AsyncListener
+    private class EndpointAsyncListener<C extends EndpointContext> implements AsyncListener
     {
         private Logger logger = LoggerFactory.getLogger(EndpointAsyncListener.class);
         private C context;
