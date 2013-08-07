@@ -99,6 +99,10 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         if(requestLogHandler != null)
             requestLogHandler.logRequest(endpointContext);
 
+        AsyncContext asyncContext = endpointContext.getAsyncContext();
+        if(asyncContext != null)
+            asyncContext.complete();
+
 
     }
 }

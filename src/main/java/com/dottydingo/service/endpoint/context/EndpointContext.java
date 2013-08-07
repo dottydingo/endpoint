@@ -1,5 +1,6 @@
 package com.dottydingo.service.endpoint.context;
 
+import com.dottydingo.service.endpoint.AsyncContext;
 import com.dottydingo.service.endpoint.CompletionHandler;
 import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.tracelog.Trace;
@@ -22,6 +23,7 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     protected CompletionHandler completionHandler;
     protected U userContext;
     protected S contextStatus;
+    private AsyncContext asyncContext;
 
     public void setCompletionHandler(CompletionHandler completionHandler)
     {
@@ -143,5 +145,15 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     public boolean isTimedOut()
     {
         return timedOut;
+    }
+
+    public AsyncContext getAsyncContext()
+    {
+        return asyncContext;
+    }
+
+    public void setAsyncContext(AsyncContext asyncContext)
+    {
+        this.asyncContext = asyncContext;
     }
 }
