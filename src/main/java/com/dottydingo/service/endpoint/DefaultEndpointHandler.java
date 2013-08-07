@@ -6,7 +6,6 @@ import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.endpoint.status.ContextStatusBuilder;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
 import com.dottydingo.service.pipeline.ErrorHandler;
-import com.dottydingo.service.pipeline.PhaseSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,24 +14,19 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  */
-public class BaseEndpointHandler<C extends EndpointContext> implements EndpointHandler
+public class DefaultEndpointHandler<C extends EndpointContext> implements EndpointHandler
 {
-    private Logger logger = LoggerFactory.getLogger(BaseEndpointHandler.class);
+    private Logger logger = LoggerFactory.getLogger(DefaultEndpointHandler.class);
 
     private ContextBuilder<C,?,?,?> contextBuilder;
-    private PhaseSelector<C> initialPhaseSelector;
     private ErrorHandler<C> errorHandler;
     private ContextStatusRegistry contextStatusRegistry;
     private ContextStatusBuilder<ContextStatus,C> contextStatusBuilder;
+    private PipelineInitiator<C> pipelineInitiator;
 
     public void setContextBuilder(ContextBuilder<C,?,?,?> contextBuilder)
     {
         this.contextBuilder = contextBuilder;
-    }
-
-    public void setInitialPhaseSelector(PhaseSelector<C> initialPhaseSelector)
-    {
-        this.initialPhaseSelector = initialPhaseSelector;
     }
 
     public void setErrorHandler(ErrorHandler<C> errorHandler)
@@ -50,6 +44,11 @@ public class BaseEndpointHandler<C extends EndpointContext> implements EndpointH
         this.contextStatusBuilder = contextStatusBuilder;
     }
 
+    public void setPipelineInitiator(PipelineInitiator<C> pipelineInitiator)
+    {
+        this.pipelineInitiator = pipelineInitiator;
+    }
+
     public void handleRequest(HttpServletRequest request,HttpServletResponse response)
     {
         C context = null;
@@ -59,6 +58,7 @@ public class BaseEndpointHandler<C extends EndpointContext> implements EndpointH
         }
         catch (Throwable t)
         {
+            context = contextBuilder.buildErrorContext(request,response);
             errorHandler.handleError(context,t);
             return;
         }
@@ -68,18 +68,13 @@ public class BaseEndpointHandler<C extends EndpointContext> implements EndpointH
             ContextStatus status = contextStatusBuilder.buildContextStatus(context);
             context.setContextStatus(status);
             contextStatusRegistry.registerContext(context.getRequestId(),status);
-            beforePipeline(context);
-            initialPhaseSelector.getNextPhase(context).execute(context);
-            afterPipeline(context);
+            pipelineInitiator.initiate(context);
         }
         catch (Exception e)
         {
             errorHandler.handleError(context,e);
         }
 
-        logger.debug("Pipeline complete.");
+        logger.debug("Handler complete.");
     }
-
-    protected void beforePipeline(C context){}
-    protected void afterPipeline(C context){}
 }

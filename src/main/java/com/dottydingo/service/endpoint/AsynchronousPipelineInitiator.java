@@ -1,6 +1,7 @@
 package com.dottydingo.service.endpoint;
 
 import com.dottydingo.service.endpoint.context.EndpointContext;
+import com.dottydingo.service.pipeline.PhaseSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,9 +13,15 @@ import java.io.IOException;
 
 /**
  */
-public class AsynchronousEndpointHandler<C extends EndpointContext> extends BaseEndpointHandler<C>
+public class AsynchronousPipelineInitiator<C extends EndpointContext> implements PipelineInitiator<C>
 {
+    private PhaseSelector<C> initialPhaseSelector;
     private long timeout = 0;
+
+    public void setInitialPhaseSelector(PhaseSelector<C> initialPhaseSelector)
+    {
+        this.initialPhaseSelector = initialPhaseSelector;
+    }
 
     public void setTimeout(long timeout)
     {
@@ -22,12 +29,14 @@ public class AsynchronousEndpointHandler<C extends EndpointContext> extends Base
     }
 
     @Override
-    protected void beforePipeline(C context)
+    public void initiate(C context)
     {
         HttpServletRequest request = context.getEndpointRequest().getHttpServletRequest();
         AsyncContext asyncContext = request.startAsync();
         asyncContext.setTimeout(timeout);
         asyncContext.addListener(new EndpointAsyncListener<C>(context));
+
+        initialPhaseSelector.getNextPhase(context).execute(context);
     }
 
     private class EndpointAsyncListener<C extends EndpointContext> implements AsyncListener
