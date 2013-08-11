@@ -48,10 +48,12 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         C context = createContextInstance();
         context.setRequestId(counter.incrementAndGet());
 
-        REQ request = createRequest(httpServletRequest);
+        REQ request = createRequestInstance();
+        setupRequest(httpServletRequest,request);
         request.setInputStream(wrapInputStream(httpServletRequest.getInputStream()));
 
-        RES response = createResponse(httpServletResponse);
+        RES response = createResponseInstance();
+        setupResponse(httpServletResponse, response);
         response.setOutputStream(wrapOutputStream(httpServletResponse.getOutputStream()));
 
         context.setEndpointRequest(request);
@@ -77,8 +79,20 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         C context = createContextInstance();
         context.setRequestId(counter.incrementAndGet());
 
-        REQ request = createRequest(httpServletRequest);
-        RES response = createResponse(httpServletResponse);
+        REQ request = createRequestInstance();
+        try
+        {
+            setupRequest(httpServletRequest,request);
+        }
+        catch (Throwable ignore){}
+
+        RES response = createResponseInstance();
+
+        try
+        {
+            setupResponse(httpServletResponse, response);
+        }
+        catch (Throwable ignore){}
 
         context.setEndpointRequest(request);
         context.setEndpointResponse(response);
@@ -87,7 +101,11 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         context.setCorrelationId(getCorrelationId(request));
 
         // create a trace if requested
-        context.setTrace(getTrace(request,context.getCorrelationId()));
+        try
+        {
+            context.setTrace(getTrace(request,context.getCorrelationId()));
+        }
+        catch (Throwable ignore){}
 
         return context;
     }
@@ -98,18 +116,15 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
 
     protected abstract REQ createRequestInstance();
 
-    protected RES createResponse(HttpServletResponse httpServletResponse)
+    protected void setupResponse(HttpServletResponse httpServletResponse, RES response)
     {
-        RES response = createResponseInstance();
         response.setHttpServletResponse(httpServletResponse);
-
-
-        return (RES) response;
+        if(endpointConfiguration.getForceConnectionClose())
+            response.setHeader("Connection", "close");
     }
 
-    protected REQ createRequest(HttpServletRequest httpServletRequest)
+    protected void setupRequest(HttpServletRequest httpServletRequest, REQ request)
     {
-        REQ request = createRequestInstance();
         request.setHttpServletRequest(httpServletRequest);
 
         Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
@@ -138,8 +153,6 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         request.setRemoteAddress(httpServletRequest.getRemoteAddr());
         request.setServerName(httpServletRequest.getServerName());
 
-
-        return request;
     }
 
     protected InputStream wrapInputStream(InputStream inputStream)

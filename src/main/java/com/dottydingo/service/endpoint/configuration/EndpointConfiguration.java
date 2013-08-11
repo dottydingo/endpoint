@@ -16,6 +16,7 @@ public class EndpointConfiguration
 
     private boolean allowTrace = true;
     private Set<String> restrictedTraceDomains = new HashSet<String>();
+    private boolean forceConnectionClose;
 
     private int maxRequestBodySize = 1024*1024; // 1 megabyte
 
@@ -96,5 +97,15 @@ public class EndpointConfiguration
             this.restrictedTraceDomains = new HashSet<String>();
             Collections.addAll(this.restrictedTraceDomains,restrictedTraceDomainArray);
         }
+    }
+
+    public boolean getForceConnectionClose()
+    {
+        return forceConnectionClose;
+    }
+
+    public void setForceConnectionClose(boolean forceConnectionClose)
+    {
+        this.forceConnectionClose = forceConnectionClose;
     }
 }

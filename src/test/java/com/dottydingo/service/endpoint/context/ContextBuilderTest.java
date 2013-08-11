@@ -42,7 +42,8 @@ public class ContextBuilderTest
         request.setContentType("application/json");
         request.setMethod("GET");
 
-        EndpointRequest endpointRequest = contextBuilder.createRequest(request);
+        EndpointRequest endpointRequest = contextBuilder.createRequestInstance();
+        contextBuilder.setupRequest(request,endpointRequest);
         Assert.assertNotNull(endpointRequest);
 
         Assert.assertSame(request,endpointRequest.getHttpServletRequest());
