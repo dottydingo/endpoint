@@ -20,14 +20,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  */
-public class ContextBuilder<C extends EndpointContext,REQ extends EndpointRequest,RES extends EndpointResponse,
-        U extends UserContext>
+public abstract class AbstractContextBuilder<C extends EndpointContext,REQ extends EndpointRequest,RES extends EndpointResponse>
 {
     private AtomicLong counter = new AtomicLong(0);
     protected EndpointConfiguration endpointConfiguration;
     protected TraceFactory traceFactory;
     protected CompletionHandler<C> completionHandler;
-    protected UserContextBuilder<U,C> userContextBuilder = (UserContextBuilder<U, C>) new EmptyUserContextBuilder();
 
     public void setEndpointConfiguration(EndpointConfiguration endpointConfiguration)
     {
@@ -44,15 +42,10 @@ public class ContextBuilder<C extends EndpointContext,REQ extends EndpointReques
         this.completionHandler = completionHandler;
     }
 
-    public void setUserContextBuilder(UserContextBuilder<U, C> userContextBuilder)
-    {
-        this.userContextBuilder = userContextBuilder;
-    }
-
     public C buildContext(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
             throws IOException
     {
-        C context = createContextInstance(httpServletRequest, httpServletResponse);
+        C context = createContextInstance();
         context.setRequestId(counter.incrementAndGet());
 
         REQ request = createRequest(httpServletRequest);
@@ -73,8 +66,6 @@ public class ContextBuilder<C extends EndpointContext,REQ extends EndpointReques
         // create a trace if requested
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
-        context.setUserContext(userContextBuilder.buildUserContext(context));
-
         context.setCompletionHandler(completionHandler);
 
         return context;
@@ -83,7 +74,7 @@ public class ContextBuilder<C extends EndpointContext,REQ extends EndpointReques
     public C buildErrorContext(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
 
     {
-        C context = createContextInstance(httpServletRequest, httpServletResponse);
+        C context = createContextInstance();
         context.setRequestId(counter.incrementAndGet());
 
         REQ request = createRequest(httpServletRequest);
@@ -98,20 +89,14 @@ public class ContextBuilder<C extends EndpointContext,REQ extends EndpointReques
         // create a trace if requested
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
-        context.setUserContext(userContextBuilder.buildUserContext(context));
-
         return context;
     }
 
-    protected C createContextInstance(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
-    {
-        return (C) new EndpointContext();
-    }
+    protected abstract C createContextInstance();
 
-    protected RES createResponseInstance()
-    {
-        return (RES) new EndpointResponse();
-    }
+    protected abstract RES createResponseInstance();
+
+    protected abstract REQ createRequestInstance();
 
     protected RES createResponse(HttpServletResponse httpServletResponse)
     {
@@ -122,11 +107,6 @@ public class ContextBuilder<C extends EndpointContext,REQ extends EndpointReques
         return (RES) response;
     }
 
-    protected REQ createRequestInstance()
-    {
-        return (REQ) new EndpointRequest();
-
-    }
     protected REQ createRequest(HttpServletRequest httpServletRequest)
     {
         REQ request = createRequestInstance();

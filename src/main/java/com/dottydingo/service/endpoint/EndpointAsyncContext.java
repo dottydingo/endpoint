@@ -2,7 +2,7 @@ package com.dottydingo.service.endpoint;
 
 /**
  */
-public interface AsyncContext
+public interface EndpointAsyncContext
 {
     void complete();
 }

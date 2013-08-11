@@ -8,7 +8,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  */
 public class ContextBuilderTest
 {
-    private ContextBuilder contextBuilder = new ContextBuilder();
+    private AbstractContextBuilder contextBuilder = new TestContextBuilder();
 
 
 
@@ -52,7 +52,26 @@ public class ContextBuilderTest
         Assert.assertEquals("foo=bar",endpointRequest.getQueryString());
         Assert.assertEquals("GET",endpointRequest.getRequestMethod());
         Assert.assertEquals("/foo/bar/baz",endpointRequest.getRequestUri());
+    }
 
+    private class TestContextBuilder extends AbstractContextBuilder<EndpointContext,EndpointRequest,EndpointResponse>
+    {
+        @Override
+        protected EndpointContext createContextInstance()
+        {
+            return new EndpointContext();
+        }
 
+        @Override
+        protected EndpointResponse createResponseInstance()
+        {
+            return new EndpointResponse();
+        }
+
+        @Override
+        protected EndpointRequest createRequestInstance()
+        {
+            return new EndpointRequest();
+        }
     }
 }

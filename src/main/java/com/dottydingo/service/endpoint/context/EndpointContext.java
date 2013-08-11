@@ -1,13 +1,13 @@
 package com.dottydingo.service.endpoint.context;
 
-import com.dottydingo.service.endpoint.AsyncContext;
+import com.dottydingo.service.endpoint.EndpointAsyncContext;
 import com.dottydingo.service.endpoint.CompletionHandler;
 import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.tracelog.Trace;
 
 /**
  */
-public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointResponse,S extends ContextStatus,
+public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointResponse,
         U extends UserContext>
 {
     protected Long requestId;
@@ -22,8 +22,7 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     protected volatile boolean complete;
     protected CompletionHandler completionHandler;
     protected U userContext;
-    protected S contextStatus;
-    private AsyncContext asyncContext;
+    protected EndpointAsyncContext endpointAsyncContext;
 
     public void setCompletionHandler(CompletionHandler completionHandler)
     {
@@ -100,16 +99,6 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
         this.userContext = userContext;
     }
 
-    public S getContextStatus()
-    {
-        return contextStatus;
-    }
-
-    public void setContextStatus(S contextStatus)
-    {
-        this.contextStatus = contextStatus;
-    }
-
     public void requestComplete()
     {
         endTimestamp = System.currentTimeMillis();
@@ -147,13 +136,13 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
         return timedOut;
     }
 
-    public AsyncContext getAsyncContext()
+    public EndpointAsyncContext getEndpointAsyncContext()
     {
-        return asyncContext;
+        return endpointAsyncContext;
     }
 
-    public void setAsyncContext(AsyncContext asyncContext)
+    public void setEndpointAsyncContext(EndpointAsyncContext endpointAsyncContext)
     {
-        this.asyncContext = asyncContext;
+        this.endpointAsyncContext = endpointAsyncContext;
     }
 }

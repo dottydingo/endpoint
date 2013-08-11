@@ -2,7 +2,6 @@ package com.dottydingo.service.endpoint;
 
 import com.dottydingo.service.endpoint.context.EndpointContext;
 import com.dottydingo.service.endpoint.status.ContextStatus;
-import com.dottydingo.service.endpoint.status.ContextStatusManager;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
 import com.dottydingo.service.tracelog.Trace;
 import com.dottydingo.service.tracelog.TraceManager;
@@ -20,7 +19,6 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     private TraceManager traceManager;
-    private ContextStatusManager contextStatusManager;
     private ContextStatusRegistry contextStatusRegistry;
     private RequestLogHandler<C> requestLogHandler;
     private List<CompletionCallback<C>> completionCallbacks = new ArrayList<CompletionCallback<C>>();
@@ -28,11 +26,6 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
     public void setTraceManager(TraceManager traceManager)
     {
         this.traceManager = traceManager;
-    }
-
-    public void setContextStatusManager(ContextStatusManager contextStatusManager)
-    {
-        this.contextStatusManager = contextStatusManager;
     }
 
     public void setContextStatusRegistry(ContextStatusRegistry contextStatusRegistry)
@@ -59,9 +52,7 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         if(trace!= null)
             traceManager.associateTrace(trace);
 
-        ContextStatus contextStatus = endpointContext.getContextStatus();
-        if(contextStatus != null)
-            contextStatusManager.associateContextStatus(contextStatus);
+        contextStatusRegistry.follow(endpointContext.getRequestId());
 
         try
         {
@@ -89,19 +80,14 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
             }
         }
 
-        if (contextStatus != null)
-        {
-            contextStatusManager.disassociateContextStatus();
-        }
-
         contextStatusRegistry.unRegisterContext(endpointContext.getRequestId());
 
         if(requestLogHandler != null)
             requestLogHandler.logRequest(endpointContext);
 
-        AsyncContext asyncContext = endpointContext.getAsyncContext();
-        if(asyncContext != null)
-            asyncContext.complete();
+        EndpointAsyncContext endpointAsyncContext = endpointContext.getEndpointAsyncContext();
+        if(endpointAsyncContext != null)
+            endpointAsyncContext.complete();
 
 
     }

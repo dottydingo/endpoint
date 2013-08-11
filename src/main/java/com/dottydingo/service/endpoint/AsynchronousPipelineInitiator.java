@@ -35,7 +35,7 @@ public class AsynchronousPipelineInitiator<C extends EndpointContext> implements
         AsyncContext asyncContext = request.startAsync();
         asyncContext.setTimeout(timeout);
         asyncContext.addListener(new EndpointAsyncListener<C>(context));
-        context.setAsyncContext(new ServletAsyncContext(asyncContext));
+        context.setEndpointAsyncContext(new ServletEndpointAsyncContext(asyncContext));
 
         initialPhaseSelector.getNextPhase(context).execute(context);
     }

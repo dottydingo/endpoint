@@ -7,11 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  */
-public class DefaultContextStatusManager<STAT extends ContextStatus>
-        implements ContextStatusManager<STAT>,ContextStatusRegistry<STAT>
+public class DefaultContextStatusRegistry<STAT extends ContextStatus>
+        implements ContextStatusRegistry<STAT>
 {
     private Map<Long,STAT> contextStatusMap = new ConcurrentHashMap<Long, STAT>();
     private Map<Thread,STAT> threadStatusMap = new ConcurrentHashMap<Thread, STAT>();
+    private Map<Long,Thread> requestIdToThreadMap = new ConcurrentHashMap<Long, Thread>();
 
     @Override
     public void associateContextStatus(STAT contextStatus)
@@ -23,6 +24,7 @@ public class DefaultContextStatusManager<STAT extends ContextStatus>
     public void associateContextStatus(STAT contextStatus, Thread thread)
     {
         threadStatusMap.put(thread,contextStatus);
+        requestIdToThreadMap.put(contextStatus.getRequestId(),thread);
     }
 
     @Override
@@ -34,7 +36,9 @@ public class DefaultContextStatusManager<STAT extends ContextStatus>
     @Override
     public void disassociateContextStatus(Thread thread)
     {
-        threadStatusMap.remove(thread);
+        STAT status = threadStatusMap.remove(thread);
+        if(status != null)
+            requestIdToThreadMap.remove(status.getRequestId());
     }
 
     @Override
@@ -59,11 +63,32 @@ public class DefaultContextStatusManager<STAT extends ContextStatus>
     public void unRegisterContext(Long requestId)
     {
         contextStatusMap.remove(requestId);
+        requestIdToThreadMap.remove(requestId);
     }
 
     @Override
     public List<STAT> getRegisteredContexts()
     {
         return new LinkedList<STAT>(contextStatusMap.values());
+    }
+
+    @Override
+    public STAT getContextStatus(Long requestId)
+    {
+        return contextStatusMap.get(requestId);
+    }
+
+    @Override
+    public STAT follow(Long requestId)
+    {
+        Thread t = requestIdToThreadMap.get(requestId);
+        if(t != null)
+            disassociateContextStatus(t);
+
+        STAT status = contextStatusMap.get(requestId);
+        if(status != null)
+            associateContextStatus(status);
+
+        return status;
     }
 }

@@ -1,7 +1,9 @@
 package com.dottydingo.service.endpoint;
 
-import com.dottydingo.service.endpoint.context.ContextBuilder;
+import com.dottydingo.service.endpoint.context.AbstractContextBuilder;
 import com.dottydingo.service.endpoint.context.EndpointContext;
+import com.dottydingo.service.endpoint.context.UserContext;
+import com.dottydingo.service.endpoint.context.UserContextBuilder;
 import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.endpoint.status.ContextStatusBuilder;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
@@ -14,17 +16,18 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  */
-public class DefaultEndpointHandler<C extends EndpointContext> implements EndpointHandler
+public class DefaultEndpointHandler<C extends EndpointContext,U extends UserContext> implements EndpointHandler
 {
     private Logger logger = LoggerFactory.getLogger(DefaultEndpointHandler.class);
 
-    private ContextBuilder<C,?,?,?> contextBuilder;
+    private AbstractContextBuilder<C,?,?> contextBuilder;
     private ErrorHandler<C> errorHandler;
     private ContextStatusRegistry contextStatusRegistry;
     private ContextStatusBuilder<ContextStatus,C> contextStatusBuilder;
     private PipelineInitiator<C> pipelineInitiator;
+    private UserContextBuilder<U,C> userContextBuilder;
 
-    public void setContextBuilder(ContextBuilder<C,?,?,?> contextBuilder)
+    public void setContextBuilder(AbstractContextBuilder<C,?,?> contextBuilder)
     {
         this.contextBuilder = contextBuilder;
     }
@@ -49,6 +52,11 @@ public class DefaultEndpointHandler<C extends EndpointContext> implements Endpoi
         this.pipelineInitiator = pipelineInitiator;
     }
 
+    public void setUserContextBuilder(UserContextBuilder<U, C> userContextBuilder)
+    {
+        this.userContextBuilder = userContextBuilder;
+    }
+
     public void handleRequest(HttpServletRequest request,HttpServletResponse response)
     {
         C context = null;
@@ -65,9 +73,8 @@ public class DefaultEndpointHandler<C extends EndpointContext> implements Endpoi
 
         try
         {
-            ContextStatus status = contextStatusBuilder.buildContextStatus(context);
-            context.setContextStatus(status);
-            contextStatusRegistry.registerContext(context.getRequestId(),status);
+            context.setUserContext(userContextBuilder.buildUserContext(context));
+            contextStatusRegistry.registerContext(context.getRequestId(),contextStatusBuilder.buildContextStatus(context));
             pipelineInitiator.initiate(context);
         }
         catch (Exception e)

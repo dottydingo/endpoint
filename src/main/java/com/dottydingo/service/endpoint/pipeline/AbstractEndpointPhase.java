@@ -2,7 +2,7 @@ package com.dottydingo.service.endpoint.pipeline;
 
 import com.dottydingo.service.endpoint.context.EndpointContext;
 import com.dottydingo.service.endpoint.status.ContextStatus;
-import com.dottydingo.service.endpoint.status.ContextStatusManager;
+import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
 import com.dottydingo.service.pipeline.Phase;
 import com.dottydingo.service.tracelog.Trace;
 import com.dottydingo.service.tracelog.TraceManager;
@@ -17,7 +17,7 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     private TraceManager traceManager;
-    private ContextStatusManager contextStatusManager;
+    private ContextStatusRegistry contextStatusRegistry;
     private String name;
 
     public void setTraceManager(TraceManager traceManager)
@@ -25,9 +25,9 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         this.traceManager = traceManager;
     }
 
-    public void setContextStatusManager(ContextStatusManager contextStatusManager)
+    public void setContextStatusRegistry(ContextStatusRegistry contextStatusRegistry)
     {
-        this.contextStatusManager = contextStatusManager;
+        this.contextStatusRegistry = contextStatusRegistry;
     }
 
     public void setName(String name)
@@ -53,14 +53,13 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         if(trace!= null)
             traceManager.associateTrace(trace);
 
-        ContextStatus contextStatus = phaseContext.getContextStatus();
-        if(contextStatus != null)
-            contextStatusManager.associateContextStatus(contextStatus);
+        ContextStatus contextStatus = contextStatusRegistry.follow(phaseContext.getRequestId());
 
         try
         {
             logger.debug("Starting phase {}",name);
-            phaseContext.getContextStatus().startTimer(String.format("phase:%s",name));
+            if(contextStatus != null)
+                contextStatus.startTimer(String.format("phase:%s",name));
 
             executePhase(phaseContext);
 
@@ -68,12 +67,14 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         }
         finally
         {
-            phaseContext.getContextStatus().stopTimer(String.format("phase:%s",name));
             MDC.clear();
             if(trace != null)
                 traceManager.disassociateTrace();
             if(contextStatus != null)
-                contextStatusManager.disassociateContextStatus();
+            {
+                contextStatus.stopTimer(String.format("phase:%s",name));
+                contextStatusRegistry.disassociateContextStatus();
+            }
         }
 
 
