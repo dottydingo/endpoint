@@ -12,7 +12,6 @@ public class DefaultContextStatusRegistry<STAT extends ContextStatus>
 {
     private Map<Long,STAT> contextStatusMap = new ConcurrentHashMap<Long, STAT>();
     private Map<Thread,STAT> threadStatusMap = new ConcurrentHashMap<Thread, STAT>();
-    private Map<Long,Thread> requestIdToThreadMap = new ConcurrentHashMap<Long, Thread>();
 
     @Override
     public void associateContextStatus(STAT contextStatus)
@@ -24,7 +23,6 @@ public class DefaultContextStatusRegistry<STAT extends ContextStatus>
     public void associateContextStatus(STAT contextStatus, Thread thread)
     {
         threadStatusMap.put(thread,contextStatus);
-        requestIdToThreadMap.put(contextStatus.getRequestId(),thread);
     }
 
     @Override
@@ -36,9 +34,7 @@ public class DefaultContextStatusRegistry<STAT extends ContextStatus>
     @Override
     public void disassociateContextStatus(Thread thread)
     {
-        STAT status = threadStatusMap.remove(thread);
-        if(status != null)
-            requestIdToThreadMap.remove(status.getRequestId());
+        threadStatusMap.remove(thread);
     }
 
     @Override
@@ -63,7 +59,6 @@ public class DefaultContextStatusRegistry<STAT extends ContextStatus>
     public void unRegisterContext(Long requestId)
     {
         contextStatusMap.remove(requestId);
-        requestIdToThreadMap.remove(requestId);
     }
 
     @Override
@@ -76,19 +71,5 @@ public class DefaultContextStatusRegistry<STAT extends ContextStatus>
     public STAT getContextStatus(Long requestId)
     {
         return contextStatusMap.get(requestId);
-    }
-
-    @Override
-    public STAT follow(Long requestId)
-    {
-        Thread t = requestIdToThreadMap.get(requestId);
-        if(t != null)
-            disassociateContextStatus(t);
-
-        STAT status = contextStatusMap.get(requestId);
-        if(status != null)
-            associateContextStatus(status);
-
-        return status;
     }
 }

@@ -52,7 +52,9 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         if(trace!= null)
             traceManager.associateTrace(trace);
 
-        contextStatusRegistry.follow(endpointContext.getRequestId());
+        ContextStatus contextStatus = contextStatusRegistry.getContextStatus(endpointContext.getRequestId());
+        if(contextStatus != null)
+            contextStatusRegistry.associateContextStatus(contextStatus);
 
         try
         {
@@ -80,6 +82,8 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
             }
         }
 
+        if(contextStatus != null)
+            contextStatusRegistry.disassociateContextStatus();
         contextStatusRegistry.unRegisterContext(endpointContext.getRequestId());
 
         if(requestLogHandler != null)

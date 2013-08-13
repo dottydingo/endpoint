@@ -53,7 +53,9 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         if(trace!= null)
             traceManager.associateTrace(trace);
 
-        ContextStatus contextStatus = contextStatusRegistry.follow(phaseContext.getRequestId());
+        ContextStatus contextStatus = contextStatusRegistry.getContextStatus(phaseContext.getRequestId());
+        if(contextStatus != null)
+            contextStatusRegistry.associateContextStatus(contextStatus);
 
         try
         {

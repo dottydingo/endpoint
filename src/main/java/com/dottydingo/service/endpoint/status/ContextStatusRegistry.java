@@ -18,5 +18,4 @@ public interface ContextStatusRegistry<STAT extends ContextStatus>
     STAT getContextStatus(Thread thread);
 
     STAT getContextStatus(Long requestId);
-    STAT follow(Long requestId);
 }
