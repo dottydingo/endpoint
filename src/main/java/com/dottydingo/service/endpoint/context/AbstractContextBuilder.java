@@ -167,7 +167,7 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
 
     protected String getCorrelationId(REQ request)
     {
-        String correlationId = request.getFirstHeader(endpointConfiguration.getCorrelationIdParameterName());
+        String correlationId = request.getFirstParameter(endpointConfiguration.getCorrelationIdParameterName());
 
         if(correlationId == null || correlationId.length()==0)
             correlationId = request.getFirstHeader(endpointConfiguration.getCorrelationIdHeaderName());
