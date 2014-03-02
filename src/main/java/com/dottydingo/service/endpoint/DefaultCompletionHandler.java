@@ -3,6 +3,7 @@ package com.dottydingo.service.endpoint;
 import com.dottydingo.service.endpoint.context.EndpointContext;
 import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
+import com.dottydingo.service.endpoint.status.EndpointStatus;
 import com.dottydingo.service.tracelog.Trace;
 import com.dottydingo.service.tracelog.TraceManager;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
     private ContextStatusRegistry contextStatusRegistry;
     private RequestLogHandler<C> requestLogHandler;
     private List<CompletionCallback<C>> completionCallbacks = new ArrayList<CompletionCallback<C>>();
+    private EndpointStatus endpointStatus;
 
     public void setTraceManager(TraceManager traceManager)
     {
@@ -41,6 +43,11 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
     public void setCompletionCallbacks(List<CompletionCallback<C>> completionCallbacks)
     {
         this.completionCallbacks = completionCallbacks;
+    }
+
+    public void setEndpointStatus(EndpointStatus endpointStatus)
+    {
+        this.endpointStatus = endpointStatus;
     }
 
     @Override
@@ -88,6 +95,8 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
 
         if(requestLogHandler != null)
             requestLogHandler.logRequest(endpointContext);
+
+        endpointStatus.endRequest();
 
         EndpointAsyncContext endpointAsyncContext = endpointContext.getEndpointAsyncContext();
         if(endpointAsyncContext != null)

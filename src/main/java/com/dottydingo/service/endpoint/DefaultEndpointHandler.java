@@ -7,6 +7,7 @@ import com.dottydingo.service.endpoint.context.UserContextBuilder;
 import com.dottydingo.service.endpoint.status.ContextStatus;
 import com.dottydingo.service.endpoint.status.ContextStatusBuilder;
 import com.dottydingo.service.endpoint.status.ContextStatusRegistry;
+import com.dottydingo.service.endpoint.status.EndpointStatus;
 import com.dottydingo.service.pipeline.ErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ public class DefaultEndpointHandler<C extends EndpointContext,U extends UserCont
     private ContextStatusBuilder<ContextStatus,C> contextStatusBuilder;
     private PipelineInitiator<C> pipelineInitiator;
     private UserContextBuilder<U,C> userContextBuilder;
+    private EndpointStatus endpointStatus;
 
     public void setContextBuilder(AbstractContextBuilder<C,?,?> contextBuilder)
     {
@@ -57,8 +59,15 @@ public class DefaultEndpointHandler<C extends EndpointContext,U extends UserCont
         this.userContextBuilder = userContextBuilder;
     }
 
+    public void setEndpointStatus(EndpointStatus endpointStatus)
+    {
+        this.endpointStatus = endpointStatus;
+    }
+
     public void handleRequest(HttpServletRequest request,HttpServletResponse response)
     {
+        endpointStatus.startRequest();
+
         C context = null;
         try
         {
