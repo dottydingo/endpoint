@@ -1,8 +1,11 @@
 package com.dottydingo.service.endpoint.context;
 
+import com.dottydingo.service.endpoint.configuration.EndpointConfiguration;
 import junit.framework.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  */
@@ -26,7 +29,7 @@ public class ContextBuilderTest
     }
 
     @Test
-    public void testCreateRequest()
+    public void testCreateRequest() throws Exception
     {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setProtocol("http");
@@ -42,8 +45,10 @@ public class ContextBuilderTest
         request.setContentType("application/json");
         request.setMethod("GET");
 
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
         EndpointRequest endpointRequest = contextBuilder.createRequestInstance();
-        contextBuilder.setupRequest(request,endpointRequest);
+        contextBuilder.setupRequest(request, response, endpointRequest);
         Assert.assertNotNull(endpointRequest);
 
         Assert.assertSame(request,endpointRequest.getHttpServletRequest());
@@ -57,6 +62,11 @@ public class ContextBuilderTest
 
     private class TestContextBuilder extends AbstractContextBuilder<EndpointContext,EndpointRequest,EndpointResponse>
     {
+        private TestContextBuilder()
+        {
+            this.endpointConfiguration = new EndpointConfiguration();
+        }
+
         @Override
         protected EndpointContext createContextInstance()
         {

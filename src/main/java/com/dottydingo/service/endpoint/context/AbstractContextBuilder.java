@@ -3,11 +3,14 @@ package com.dottydingo.service.endpoint.context;
 import com.dottydingo.service.endpoint.CompletionHandler;
 import com.dottydingo.service.endpoint.configuration.EndpointConfiguration;
 import com.dottydingo.service.endpoint.io.BufferingInputStreamWrapper;
+import com.dottydingo.service.endpoint.io.CompressionOutputStreamWrapper;
+import com.dottydingo.service.endpoint.io.NoCloseServletOutputStreamWrapper;
 import com.dottydingo.service.endpoint.io.SizeTrackingOutputStream;
 import com.dottydingo.service.tracelog.Trace;
 import com.dottydingo.service.tracelog.TraceFactory;
 import com.dottydingo.service.tracelog.TraceType;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.util.Enumeration;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.GZIPOutputStream;
 
 /**
  */
@@ -49,12 +53,10 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         context.setRequestId(counter.incrementAndGet());
 
         REQ request = createRequestInstance();
-        setupRequest(httpServletRequest,request);
-        request.setInputStream(wrapInputStream(httpServletRequest.getInputStream()));
+        setupRequest(httpServletRequest,httpServletResponse, request);
 
         RES response = createResponseInstance();
-        setupResponse(httpServletResponse, response);
-        response.setOutputStream(wrapOutputStream(httpServletResponse.getOutputStream()));
+        setupResponse(httpServletRequest,httpServletResponse, response);
 
         context.setEndpointRequest(request);
         context.setEndpointResponse(response);
@@ -82,7 +84,7 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         REQ request = createRequestInstance();
         try
         {
-            setupRequest(httpServletRequest,request);
+            setupRequest(httpServletRequest, httpServletResponse, request);
         }
         catch (Throwable ignore){}
 
@@ -90,7 +92,7 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
 
         try
         {
-            setupResponse(httpServletResponse, response);
+            setupResponse(httpServletRequest, httpServletResponse, response);
         }
         catch (Throwable ignore){}
 
@@ -116,14 +118,18 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
 
     protected abstract REQ createRequestInstance();
 
-    protected void setupResponse(HttpServletResponse httpServletResponse, RES response)
+    protected void setupResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, RES response)
+            throws IOException
     {
         response.setHttpServletResponse(httpServletResponse);
+        response.setOutputStream(wrapOutputStream(httpServletRequest, httpServletResponse));
+
         if(endpointConfiguration.getForceConnectionClose())
             response.setHeader("Connection", "close");
     }
 
-    protected void setupRequest(HttpServletRequest httpServletRequest, REQ request)
+    protected void setupRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, REQ request)
+            throws IOException
     {
         request.setHttpServletRequest(httpServletRequest);
 
@@ -153,16 +159,36 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         request.setRemoteAddress(httpServletRequest.getRemoteAddr());
         request.setServerName(httpServletRequest.getServerName());
 
+        request.setInputStream(wrapInputStream(httpServletRequest,httpServletResponse));
+
     }
 
-    protected InputStream wrapInputStream(InputStream inputStream)
+    private InputStream wrapInputStream(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
+            throws IOException
     {
-        return new BufferingInputStreamWrapper(inputStream,endpointConfiguration.getMaxRequestBodySize(),true);
+        return new BufferingInputStreamWrapper(httpServletRequest.getInputStream(),
+                endpointConfiguration.getMaxRequestBodySize(),true);
     }
 
-    protected OutputStream wrapOutputStream(OutputStream outputStream)
+
+    protected OutputStream wrapOutputStream(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
+            throws IOException
     {
-        return new SizeTrackingOutputStream(outputStream,true);
+        ServletOutputStream os = httpServletResponse.getOutputStream();
+        if(canCompress(httpServletRequest))
+            os = new CompressionOutputStreamWrapper(httpServletResponse,
+                    endpointConfiguration.getResponseCompressionThreshold());
+        else
+            os = new NoCloseServletOutputStreamWrapper(os);
+
+        return new SizeTrackingOutputStream(os, false);
+    }
+
+    protected boolean canCompress(HttpServletRequest servletRequest)
+    {
+        String acceptEncoding = servletRequest.getHeader("Accept-Encoding");
+        return endpointConfiguration.getEnableResponseCompression() && acceptEncoding != null
+                && acceptEncoding.contains("gzip");
     }
 
     protected String getCorrelationId(REQ request)

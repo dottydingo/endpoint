@@ -19,6 +19,8 @@ public class EndpointConfiguration
     private boolean forceConnectionClose;
 
     private int maxRequestBodySize = 1024*1024; // 1 megabyte
+    private boolean enableResponseCompression = false;
+    private int responseCompressionThreshold = 1024;
 
     public String getTraceParameterName()
     {
@@ -107,5 +109,25 @@ public class EndpointConfiguration
     public void setForceConnectionClose(boolean forceConnectionClose)
     {
         this.forceConnectionClose = forceConnectionClose;
+    }
+
+    public boolean getEnableResponseCompression()
+    {
+        return enableResponseCompression;
+    }
+
+    public void setEnableResponseCompression(boolean enableResponseCompression)
+    {
+        this.enableResponseCompression = enableResponseCompression;
+    }
+
+    public int getResponseCompressionThreshold()
+    {
+        return responseCompressionThreshold;
+    }
+
+    public void setResponseCompressionThreshold(int responseCompressionThreshold)
+    {
+        this.responseCompressionThreshold = responseCompressionThreshold;
     }
 }
