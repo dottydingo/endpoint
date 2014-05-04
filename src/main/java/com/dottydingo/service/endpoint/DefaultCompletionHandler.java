@@ -99,7 +99,7 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         endpointStatus.endRequest();
 
         EndpointAsyncContext endpointAsyncContext = endpointContext.getEndpointAsyncContext();
-        if(endpointAsyncContext != null)
+        if(endpointAsyncContext != null && !endpointContext.isTimedOut())
             endpointAsyncContext.complete();
 
 
