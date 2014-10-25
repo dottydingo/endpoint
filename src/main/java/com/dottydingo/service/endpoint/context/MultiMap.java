@@ -8,6 +8,20 @@ public class MultiMap
 {
     private Map<String,List<String>> map = new TreeMap<String,List<String>>(new CaseInsensitiveComparator());
 
+    public MultiMap()
+    {
+    }
+
+    private MultiMap(Map<String, List<String>> map)
+    {
+        this.map = map;
+    }
+
+    /**
+     * Return the values associated with the key.
+     * @param key The key
+     * @return The values, or null if there are none.
+     */
     public List<String> get(String key)
     {
         if(key == null)
@@ -16,6 +30,11 @@ public class MultiMap
         return map.get(key);
     }
 
+    /**
+     * Return the first value associated with the key.
+     * @param key The key.
+     * @return The first value, or null if there are no values.
+     */
     public String getFirst(String key)
     {
         if(key == null)
@@ -28,6 +47,12 @@ public class MultiMap
         return vals.get(0);
     }
 
+    /**
+     * Add a value to the key. If other values are already associated with the key then this value will be added
+     * to the existing values.
+     * @param key The key
+     * @param value The value
+     */
     public void add(String key, String value)
     {
         if(key == null)
@@ -44,6 +69,25 @@ public class MultiMap
         }
 
         vals.add(value);
+    }
+
+    /**
+     * Return a copy of this MultiMap containing only the supplied keys
+     * @param keys The keys to include in the copy
+     * @return The filtered copy
+     */
+    public MultiMap filter(Collection<String> keys)
+    {
+        // no reason for a treemap here since we are copying by known keys
+        Map<String,List<String>> copy = new HashMap<String, List<String>>();
+        for (String key : keys)
+        {
+            List<String> value = map.get(key);
+            if(value != null)
+                copy.put(key,Collections.unmodifiableList(value));
+        }
+
+        return new MultiMap(copy);
     }
 
     public Set<String> getKeys()
