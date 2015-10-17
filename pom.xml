@@ -21,13 +21,13 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:mhellkamp/endpoint.git</connection>
-        <developerConnection>scm:git:git@github.com:mhellkamp/endpoint.git</developerConnection>
+        <connection>scm:git:git@github.com:dottydingo/endpoint.git</connection>
+        <developerConnection>scm:git:git@github.com:dottydingo/endpoint.git</developerConnection>
         <url>http://mhellkamp.github.com/endpoint/</url>
     </scm>
 
     <properties>
-        <pipeline.version>1.0.0</pipeline.version>
+        <pipeline.version>1.1.0-SNAPSHOT</pipeline.version>
         <tracelog.version>1.1.0</tracelog.version>
     </properties>
 

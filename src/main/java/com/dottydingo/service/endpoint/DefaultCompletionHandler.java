@@ -24,6 +24,7 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
     private RequestLogHandler<C> requestLogHandler;
     private List<CompletionCallback<C>> completionCallbacks = new ArrayList<CompletionCallback<C>>();
     private EndpointStatus endpointStatus;
+    private String correlationIdMarker = "CID";
 
     public void setTraceManager(TraceManager traceManager)
     {
@@ -45,6 +46,11 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
         this.completionCallbacks = completionCallbacks;
     }
 
+    public void setCorrelationIdMarker(String correlationIdMarker)
+    {
+        this.correlationIdMarker = correlationIdMarker;
+    }
+
     public void setEndpointStatus(EndpointStatus endpointStatus)
     {
         this.endpointStatus = endpointStatus;
@@ -53,7 +59,7 @@ public class DefaultCompletionHandler<C extends EndpointContext> implements Comp
     @Override
     public void completeRequest(C endpointContext)
     {
-        MDC.put("CID", endpointContext.getCorrelationId());
+        MDC.put("CID", endpointContext.getRequestCorrelationId());
 
         Trace trace = endpointContext.getTrace();
         if(trace!= null)

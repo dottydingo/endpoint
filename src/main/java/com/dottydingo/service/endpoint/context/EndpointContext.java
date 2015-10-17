@@ -10,10 +10,10 @@ import com.dottydingo.service.tracelog.Trace;
 public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointResponse,
         U extends UserContext>
 {
-    protected Long requestId;
+    protected Long requestId = new Long(0L);
     protected REQ endpointRequest;
     protected RES endpointResponse;
-    protected String correlationId;
+    protected String correlationId = "0";
     protected Trace trace;
     protected Throwable error;
     protected long startTimestamp = System.currentTimeMillis();
@@ -23,6 +23,7 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     protected CompletionHandler completionHandler;
     protected U userContext;
     protected EndpointAsyncContext endpointAsyncContext;
+    protected String requestCorrelationId;
 
     public void setCompletionHandler(CompletionHandler completionHandler)
     {
@@ -144,5 +145,13 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
     public void setEndpointAsyncContext(EndpointAsyncContext endpointAsyncContext)
     {
         this.endpointAsyncContext = endpointAsyncContext;
+    }
+
+    public String getRequestCorrelationId()
+    {
+        if(requestCorrelationId == null)
+            requestCorrelationId = requestId + ":" + correlationId;
+
+        return requestCorrelationId;
     }
 }

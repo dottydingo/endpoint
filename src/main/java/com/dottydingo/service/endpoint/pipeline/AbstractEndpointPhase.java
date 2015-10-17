@@ -19,6 +19,7 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
     private TraceManager traceManager;
     private ContextStatusRegistry contextStatusRegistry;
     private String name;
+    private String correlationIdMarker = "CID";
 
     public void setTraceManager(TraceManager traceManager)
     {
@@ -35,6 +36,11 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
         this.name = name;
     }
 
+    public void setCorrelationIdMarker(String correlationIdMarker)
+    {
+        this.correlationIdMarker = correlationIdMarker;
+    }
+
     @Override
     public String getName()
     {
@@ -42,12 +48,12 @@ public abstract class AbstractEndpointPhase<C extends EndpointContext> implement
     }
 
     @Override
-    public void execute(C phaseContext) throws Exception
+    public void execute(C phaseContext) throws Throwable
     {
         if(phaseContext.isTimedOut())
-            throw new EndpointTimeoutException(String.format("Endpoint request timed out."));
+            throw new EndpointTimeoutException("Endpoint request timed out.");
 
-        MDC.put("CID",phaseContext.getCorrelationId());
+        MDC.put(correlationIdMarker,phaseContext.getRequestCorrelationId());
 
         Trace trace = phaseContext.getTrace();
         if(trace!= null)
