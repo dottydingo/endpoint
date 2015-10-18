@@ -30,6 +30,8 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
     protected EndpointConfiguration endpointConfiguration;
     protected TraceFactory traceFactory;
     protected CompletionHandler<C> completionHandler;
+    protected RequestCorrelationIdGenerator<C> requestCorrelationIdGenerator = new DefaultRequestCorrelationIdGenerator<C>();
+    protected CorrelationIdGenerator correlationIdGenerator = new CompactUuidCorrlationIdGenerator();
 
     public void setEndpointConfiguration(EndpointConfiguration endpointConfiguration)
     {
@@ -44,6 +46,16 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
     public void setCompletionHandler(CompletionHandler<C> completionHandler)
     {
         this.completionHandler = completionHandler;
+    }
+
+    public void setRequestCorrelationIdGenerator(RequestCorrelationIdGenerator<C> requestCorrelationIdGenerator)
+    {
+        this.requestCorrelationIdGenerator = requestCorrelationIdGenerator;
+    }
+
+    public void setCorrelationIdGenerator(CorrelationIdGenerator correlationIdGenerator)
+    {
+        this.correlationIdGenerator = correlationIdGenerator;
     }
 
     public C buildContext(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
@@ -71,6 +83,8 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
         context.setTrace(getTrace(request,context.getCorrelationId()));
 
         context.setCompletionHandler(completionHandler);
+
+        context.setRequestCorrelationId(requestCorrelationIdGenerator.generateRequestCorrelationId(context));
 
         return context;
     }
@@ -108,6 +122,8 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
             context.setTrace(getTrace(request,context.getCorrelationId()));
         }
         catch (Throwable ignore){}
+
+        context.setRequestCorrelationId(requestCorrelationIdGenerator.generateRequestCorrelationId(context));
 
         return context;
     }
@@ -199,7 +215,7 @@ public abstract class AbstractContextBuilder<C extends EndpointContext,REQ exten
             correlationId = request.getFirstHeader(endpointConfiguration.getCorrelationIdHeaderName());
 
         if(correlationId == null || correlationId.length()==0)
-            correlationId = UUID.randomUUID().toString();
+            correlationId = correlationIdGenerator.generateCorrelationId();
 
         return correlationId;
     }

@@ -149,9 +149,11 @@ public class EndpointContext<REQ extends EndpointRequest,RES extends EndpointRes
 
     public String getRequestCorrelationId()
     {
-        if(requestCorrelationId == null)
-            requestCorrelationId = requestId + ":" + correlationId;
-
         return requestCorrelationId;
+    }
+
+    public void setRequestCorrelationId(String requestCorrelationId)
+    {
+        this.requestCorrelationId = requestCorrelationId;
     }
 }
