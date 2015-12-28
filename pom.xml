@@ -27,7 +27,7 @@
     </scm>
 
     <properties>
-        <pipeline.version>1.1.0-SNAPSHOT</pipeline.version>
+        <pipeline.version>1.1.0</pipeline.version>
         <tracelog.version>1.1.0</tracelog.version>
     </properties>
 
